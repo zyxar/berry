@@ -5,6 +5,7 @@ package i2c
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"syscall"
 	"unsafe"
 )
@@ -32,26 +33,39 @@ type I2C struct {
 }
 
 // New opens a connection to an i2c device.
-func New(addr uint, bus int) (*I2C, error) {
+func New(addr uint, bus int) (i *I2C, err error) {
 	f, err := os.OpenFile(fmt.Sprintf("/dev/i2c-%d", bus), os.O_RDWR, 0600)
 	if err != nil {
-		return nil, err
+		return
 	}
+	defer func() {
+		if err != nil {
+			f.Close()
+		}
+	}()
 	if addr <= 0x7F {
-		if err := ioctl(f.Fd(), I2C_TENBIT, 0); err != nil {
-			return nil, err
+		if err = ioctl(f.Fd(), I2C_TENBIT, 0); err != nil {
+			return
 		}
 	} else if addr <= 0x3FF {
-		if err := ioctl(f.Fd(), I2C_TENBIT, 1); err != nil {
-			return nil, err
+		if err = ioctl(f.Fd(), I2C_TENBIT, 1); err != nil {
+			return
 		}
 	} else {
-		return nil, fmt.Errorf("address overflow: %d", addr)
+		err = fmt.Errorf("address overflow: %d", addr)
+		return
 	}
-	if err := ioctl(f.Fd(), I2C_SLAVE, uintptr(addr)); err != nil {
-		return nil, err
+	if err = ioctl(f.Fd(), I2C_SLAVE, uintptr(addr)); err != nil {
+		return
 	}
-	return &I2C{f, addr, bus}, nil
+	i = &I2C{f, addr, bus}
+	runtime.SetFinalizer(i, func(this *I2C) {
+		if this.rc != nil {
+			this.rc.Close()
+			this.rc = nil
+		}
+	})
+	return
 }
 
 // Write sends buf to the remote i2c device. The interpretation of

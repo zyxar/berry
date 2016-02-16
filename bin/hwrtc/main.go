@@ -12,28 +12,43 @@ import (
 	"github.com/zyxar/berry/i2c"
 )
 
+var (
+	i         *i2c.I2C
+	addr      = flag.Uint("addr", 0x68, "specifiy i2c address")
+	bus       = flag.Int("bus", 1, "specifiy i2c bus")
+	readTime  = flag.Bool("r", false, "read hardware clock and print result")
+	setTime   = flag.Bool("s", false, "set the system time from the hardware clock")
+	writeTime = flag.Bool("w", false, "set the hardware clock from the current system time")
+)
+
 func main() {
-	if !readTime && !setTime && !writeTime {
+	flag.Parse()
+	if !*readTime && !*setTime && !*writeTime {
 		flag.Usage()
 		return
 	}
-	if readTime {
+	var err error
+	if i, err = i2c.New(*addr, *bus); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	if *readTime {
 		if t := getDateDS1307(); t != nil {
 			fmt.Println(t)
 		}
 	}
-	if setTime {
+	if *setTime {
 		if t := getDateDS1307(); t != nil {
 			tv := syscall.Timeval{
 				Sec:  int32(t.Unix()),
 				Usec: int32(t.UnixNano() % 100000000),
 			}
-			if err := syscall.Settimeofday(&tv); err != nil {
+			if err = syscall.Settimeofday(&tv); err != nil {
 				fmt.Fprintln(os.Stderr, err.Error())
 			}
 		}
 	}
-	if writeTime {
+	if *writeTime {
 		now := time.Now()
 		fmt.Println("set time -", now)
 		setDateDS1307(&now)
@@ -41,30 +56,6 @@ func main() {
 		if t := getDateDS1307(); t != nil {
 			fmt.Println(t)
 		}
-	}
-}
-
-var (
-	i         *i2c.I2C
-	readTime  bool
-	setTime   bool
-	writeTime bool
-)
-
-func init() {
-	var (
-		addr uint
-		bus  int
-		err  error
-	)
-	flag.BoolVar(&readTime, "r", false, "read hardware clock and print result")
-	flag.BoolVar(&setTime, "s", false, "set the system time from the hardware clock")
-	flag.BoolVar(&writeTime, "w", false, "set the hardware clock from the current system time")
-	flag.UintVar(&addr, "addr", 0x68, "specifiy i2c address")
-	flag.IntVar(&bus, "bus", 2, "specifiy i2c bus")
-	flag.Parse()
-	if i, err = i2c.New(addr, bus); err != nil {
-		panic(err.Error())
 	}
 }
 
