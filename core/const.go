@@ -1,0 +1,60 @@
+package core
+
+const (
+	MAX_GPIO_NUM      = 23
+	MAX_GPIO_MODE_NUM = 8
+	MAX_PWM_NUM       = 5
+	MAX_ADC_NUM       = 11
+
+	GPIO0  = 0
+	GPIO1  = 1
+	GPIO2  = 2
+	GPIO3  = 3
+	GPIO4  = 4
+	GPIO5  = 5
+	GPIO6  = 6
+	GPIO7  = 7
+	GPIO8  = 8
+	GPIO9  = 9
+	GPIO10 = 10
+	GPIO11 = 11
+	GPIO12 = 12
+	GPIO13 = 13
+	GPIO14 = 14
+	GPIO15 = 15
+	GPIO16 = 16
+	GPIO17 = 17
+	GPIO18 = 18
+	GPIO19 = 19
+	GPIO20 = 20
+	GPIO21 = 21
+	GPIO22 = 22
+	GPIO23 = 23
+
+	A0  = 0
+	A1  = 1
+	A2  = 2
+	A3  = 3
+	A4  = 4
+	A5  = 5
+	A6  = 6
+	A7  = 7
+	A8  = 8
+	A9  = 9
+	A10 = 10
+	A11 = 11
+
+	IO_SPI_FUNC   = 2
+	IO_SPIEX_FUNC = 3
+	IO_UART_FUNC  = 3
+
+	SPI_CS   = GPIO10
+	SPI_MOSI = GPIO11
+	SPI_MISO = GPIO12
+	SPI_CLK  = GPIO13
+
+	SPIEX_CS   = GPIO20
+	SPIEX_MOSI = GPIO21
+	SPIEX_MISO = GPIO22
+	SPIEX_CLK  = GPIO23
+)
