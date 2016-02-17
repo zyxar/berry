@@ -85,7 +85,7 @@ func getDateDS1307() *time.Time {
 	i.Write(0)
 	b := make([]byte, 7)
 	if err := i.Read(b); err != nil {
-		fmt.Fprintf(os.Stderr, "getDateDS1307: %v\n", err)
+		fmt.Fprintln(os.Stderr, err)
 		return nil
 	}
 	// A few of these need masks because certain bits are control bits

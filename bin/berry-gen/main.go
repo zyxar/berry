@@ -34,7 +34,9 @@ func main() {
 	flag.BoolVar(&mklib, "lib", false, "make a library package")
 	flag.Parse()
 	if flag.NArg() == 0 || flag.Arg(0) == "" {
-		fmt.Println("No package name provided.")
+		fmt.Println("No package name provided.\n")
+		fmt.Println("usage: berry-gen [option] {PKG_NAME}")
+		flag.PrintDefaults()
 		os.Exit(1)
 	}
 	package_name := flag.Arg(0)
