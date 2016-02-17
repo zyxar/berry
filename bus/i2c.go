@@ -26,26 +26,6 @@ const (
 	I2C_SMBUS       = 0x0720 /* SMBus transfer */
 ) // from <linux/i2c-dev.h>
 
-const (
-	I2C_SMBUS_WRITE = iota
-	I2C_SMBUS_READ
-
-	// SMBus transaction types
-	I2C_SMBUS_QUICK = iota
-	I2C_SMBUS_BYTE
-	I2C_SMBUS_BYTE_DATA
-	I2C_SMBUS_WORD_DATA
-	I2C_SMBUS_PROC_CALL
-	I2C_SMBUS_BLOCK_DATA
-	I2C_SMBUS_I2C_BLOCK_BROKEN
-	I2C_SMBUS_BLOCK_PROC_CALL /* SMBus 2.0 */
-	I2C_SMBUS_I2C_BLOCK_DATA
-
-	// SMBus messages
-	I2C_SMBUS_BLOCK_MAX     = 32 /* As specified in SMBus standard */
-	I2C_SMBUS_I2C_BLOCK_MAX = 32 /* Not specified but we use same structure */
-)
-
 // I2C represents a connection to an i2c device.
 type I2C struct {
 	rc   *os.File
