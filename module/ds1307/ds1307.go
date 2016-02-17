@@ -5,11 +5,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zyxar/berry/i2c"
+	"github.com/zyxar/berry/bus"
 )
 
 type Clock struct {
-	h *i2c.I2C
+	h *bus.I2C
 	m *sync.Mutex
 }
 
@@ -20,18 +20,18 @@ func init() {
 	clockTable = make(map[uint64]*Clock)
 }
 
-func New(addr, bus uint) (*Clock, error) {
+func New(addr, name uint) (*Clock, error) {
 	defer mutex.Unlock()
 	mutex.Lock()
-	if k, ok := clockTable[addrKey(addr, bus)]; ok {
+	if k, ok := clockTable[addrKey(addr, name)]; ok {
 		return k, nil
 	}
-	i, err := i2c.New(addr, int(bus))
+	i, err := bus.NewI2C(addr, int(name))
 	if err != nil {
 		return nil, err
 	}
 	r := &Clock{i, &sync.Mutex{}}
-	clockTable[addrKey(addr, bus)] = r
+	clockTable[addrKey(addr, name)] = r
 	return r, nil
 }
 
@@ -80,6 +80,6 @@ func bcdToDec(val byte) byte {
 	return ((val / 16 * 10) + (val % 16))
 }
 
-func addrKey(addr, bus uint) uint64 {
-	return (uint64(addr) << 32) | uint64(bus)
+func addrKey(addr, name uint) uint64 {
+	return (uint64(addr) << 32) | uint64(name)
 }

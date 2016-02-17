@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zyxar/berry/i2c"
+	"github.com/zyxar/berry/bus"
 )
 
 var (
-	i         *i2c.I2C
+	i         *bus.I2C
 	addr      = flag.Uint("addr", 0x68, "specifiy i2c address")
-	bus       = flag.Int("bus", 1, "specifiy i2c bus")
+	name      = flag.Int("bus", 1, "specifiy i2c bus")
 	readTime  = flag.Bool("r", false, "read hardware clock and print result")
 	setTime   = flag.Bool("s", false, "set the system time from the hardware clock")
 	writeTime = flag.Bool("w", false, "set the hardware clock from the current system time")
@@ -28,7 +28,7 @@ func main() {
 		return
 	}
 	var err error
-	if i, err = i2c.New(*addr, *bus); err != nil {
+	if i, err = bus.NewI2C(*addr, *name); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}

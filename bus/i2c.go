@@ -1,6 +1,7 @@
-// Package i2c provides low level control over the linux i2c bus.
+// Package bus provides low level control over the linux buses.
+package bus
+
 // based on https://github.com/davecheney/i2c/blob/master/i2c.go
-package i2c
 
 import (
 	"fmt"
@@ -53,7 +54,7 @@ type I2C struct {
 }
 
 // New opens a connection to an i2c device.
-func New(addr uint, bus int) (i *I2C, err error) {
+func NewI2C(addr uint, bus int) (i *I2C, err error) {
 	f, err := os.OpenFile(fmt.Sprintf("/dev/i2c-%d", bus), os.O_RDWR, 0600)
 	if err != nil {
 		return
