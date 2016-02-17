@@ -24,18 +24,21 @@ const (
 	I2C_RDWR        = 0x0707 /* Combined R/W transfer (one STOP only) */
 	I2C_PEC         = 0x0708 /* != 0 to use PEC with SMBus */
 	I2C_SMBUS       = 0x0720 /* SMBus transfer */
+
+	I2C_RDRW_IOCTL_MAX_MSGS = 42
 ) // from <linux/i2c-dev.h>
 
 // I2C represents a connection to an i2c device.
 type I2C struct {
 	rc   *os.File
 	addr uint
-	bus  int
+	dev  uint
+	mask uint64
 }
 
 // New opens a connection to an i2c device.
-func NewI2C(addr uint, bus int) (i *I2C, err error) {
-	f, err := os.OpenFile(fmt.Sprintf("/dev/i2c-%d", bus), os.O_RDWR, 0600)
+func NewI2C(addr uint, dev uint) (i *I2C, err error) {
+	f, err := os.OpenFile(fmt.Sprintf("/dev/i2c-%d", dev), os.O_RDWR, 0600)
 	if err != nil {
 		return
 	}
@@ -59,7 +62,11 @@ func NewI2C(addr uint, bus int) (i *I2C, err error) {
 	if err = ioctl(f.Fd(), I2C_SLAVE, uintptr(addr)); err != nil {
 		return
 	}
-	i = &I2C{f, addr, bus}
+	var mask uint64
+	if err = ioctl(f.Fd(), I2C_FUNCS, uintptr(unsafe.Pointer(&mask))); err != nil {
+		return
+	}
+	i = &I2C{f, addr, dev, mask}
 	runtime.SetFinalizer(i, func(this *I2C) {
 		if this.rc != nil {
 			this.rc.Close()
@@ -69,15 +76,23 @@ func NewI2C(addr uint, bus int) (i *I2C, err error) {
 	return
 }
 
+func (this *I2C) Fd() uintptr {
+	return this.rc.Fd()
+}
+
+func (this *I2C) Mask() uint64 {
+	return this.mask
+}
+
 // Write sends buf to the remote i2c device. The interpretation of
 // the message is implementation dependant.
-func (i2c *I2C) Write(buf ...byte) error {
-	_, err := i2c.rc.Write(buf)
+func (this *I2C) Write(buf ...byte) error {
+	_, err := this.rc.Write(buf)
 	return err
 }
 
-func (i2c *I2C) Read(b []byte) error {
-	_, err := i2c.rc.Read(b)
+func (this *I2C) Read(b []byte) error {
+	_, err := this.rc.Read(b)
 	return err
 }
 

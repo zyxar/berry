@@ -15,7 +15,7 @@ import (
 var (
 	i         *bus.I2C
 	addr      = flag.Uint("addr", 0x68, "specifiy i2c address")
-	name      = flag.Int("bus", 1, "specifiy i2c bus")
+	dev       = flag.Uint("bus", 1, "specifiy i2c bus")
 	readTime  = flag.Bool("r", false, "read hardware clock and print result")
 	setTime   = flag.Bool("s", false, "set the system time from the hardware clock")
 	writeTime = flag.Bool("w", false, "set the hardware clock from the current system time")
@@ -28,7 +28,7 @@ func main() {
 		return
 	}
 	var err error
-	if i, err = bus.NewI2C(*addr, *name); err != nil {
+	if i, err = bus.NewI2C(*addr, *dev); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
 	}

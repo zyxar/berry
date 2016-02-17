@@ -20,18 +20,18 @@ func init() {
 	clockTable = make(map[uint64]*Clock)
 }
 
-func New(addr, name uint) (*Clock, error) {
+func New(addr, dev uint) (*Clock, error) {
 	defer mutex.Unlock()
 	mutex.Lock()
-	if k, ok := clockTable[addrKey(addr, name)]; ok {
+	if k, ok := clockTable[addrKey(addr, dev)]; ok {
 		return k, nil
 	}
-	i, err := bus.NewI2C(addr, int(name))
+	i, err := bus.NewI2C(addr, dev)
 	if err != nil {
 		return nil, err
 	}
 	r := &Clock{i, &sync.Mutex{}}
-	clockTable[addrKey(addr, name)] = r
+	clockTable[addrKey(addr, dev)] = r
 	return r, nil
 }
 
@@ -80,6 +80,6 @@ func bcdToDec(val byte) byte {
 	return ((val / 16 * 10) + (val % 16))
 }
 
-func addrKey(addr, name uint) uint64 {
-	return (uint64(addr) << 32) | uint64(name)
+func addrKey(addr, dev uint) uint64 {
+	return (uint64(addr) << 32) | uint64(dev)
 }
