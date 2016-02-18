@@ -68,12 +68,16 @@ func NewI2C(addr uint, dev uint) (i *I2C, err error) {
 	}
 	i = &I2C{f, addr, dev, mask}
 	runtime.SetFinalizer(i, func(this *I2C) {
-		if this.rc != nil {
-			this.rc.Close()
-			this.rc = nil
-		}
+		this.Close()
 	})
 	return
+}
+
+func (this *I2C) Close() {
+	if this.rc != nil {
+		this.rc.Close()
+		this.rc = nil
+	}
 }
 
 func (this *I2C) Fd() uintptr {

@@ -8,8 +8,9 @@ import (
 const (
 	SMBUS_WRITE = iota
 	SMBUS_READ
+)
 
-	// SMBus transaction types
+const ( // SMBus transaction types
 	SMBUS_QUICK = iota
 	SMBUS_BYTE
 	SMBUS_BYTE_DATA
@@ -19,8 +20,8 @@ const (
 	SMBUS_I2C_BLOCK_BROKEN
 	SMBUS_BLOCK_PROC_CALL /* SMBus 2.0 */
 	SMBUS_I2C_BLOCK_DATA
-
-	// SMBus messages
+)
+const ( // SMBus messages
 	SMBUS_BLOCK_MAX     = 32
 	SMBUS_I2C_BLOCK_MAX = 32
 )
@@ -100,7 +101,7 @@ func SMBusReadByteData(fd uintptr, cmd uint8) (b uint8, err error) {
 func SMBusWriteByteData(fd uintptr, cmd uint8, b uint8) error {
 	var data smbusData
 	data[0] = b
-	return smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_BYTE, &data)
+	return smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_BYTE_DATA, &data)
 }
 
 func SMBusReadWordData(fd uintptr, cmd uint8) (b uint16, err error) {

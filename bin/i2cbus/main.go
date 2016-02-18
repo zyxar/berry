@@ -94,6 +94,7 @@ func factory(args ...string) func(args ...string) error {
 		if err != nil {
 			return err
 		}
+		defer s.Close()
 		mask := s.Mask()
 		fmt.Printf("bus: %d, addr: 0x%02x, mask: 0x%08X\n", *dev, addr, mask)
 		switch cmd {
@@ -107,26 +108,30 @@ func factory(args ...string) func(args ...string) error {
 			if len(args) < 2 {
 				return errNoRegister
 			}
-			reg, err := strconv.ParseUint(args[1], 10, 8)
-			if err != nil {
-				return err
-			}
-			b, err := bus.SMBusReadByteData(s.Fd(), uint8(reg))
-			if err != nil {
-				return err
+			b := make([]uint8, len(args)-1)
+			for i, arg := range args[1:] {
+				reg, err := strconv.ParseUint(arg, 10, 8)
+				if err != nil {
+					return err
+				}
+				if b[i], err = bus.SMBusReadByteData(s.Fd(), uint8(reg)); err != nil {
+					return err
+				}
 			}
 			fmt.Printf("%X\n", b)
 		case "readword":
 			if len(args) < 2 {
 				return errNoRegister
 			}
-			reg, err := strconv.ParseUint(args[1], 10, 8)
-			if err != nil {
-				return err
-			}
-			b, err := bus.SMBusReadWordData(s.Fd(), uint8(reg))
-			if err != nil {
-				return err
+			b := make([]uint16, len(args)-1)
+			for i, arg := range args[1:] {
+				reg, err := strconv.ParseUint(arg, 10, 8)
+				if err != nil {
+					return err
+				}
+				if b[i], err = bus.SMBusReadWordData(s.Fd(), uint8(reg)); err != nil {
+					return err
+				}
 			}
 			fmt.Printf("%X\n", b)
 		case "readblock":

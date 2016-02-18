@@ -3,7 +3,9 @@ package core
 const (
 	LOW = iota
 	HIGH
+)
 
+const (
 	INPUT = iota
 	OUTPUT
 	PULL_OFF
@@ -14,14 +16,21 @@ const (
 	SOFT_PWM_OUTPUT
 	SOFT_TONE_OUTPUT
 	PWM_TONE_OUTPUT
+)
 
+const (
 	LSBFIRST = iota
 	MSBFIRST
+)
 
-	CHANGE = iota + 1
+const (
+	_ = iota
+	CHANGE
 	FALLING
 	RISING
+)
 
+const (
 	MMAP_BLOCK_SIZE = 4096
 	DEV_GPIO_MEM    = "/dev/gpiomem"
 	DEV_MEM         = "/dev/mem"
