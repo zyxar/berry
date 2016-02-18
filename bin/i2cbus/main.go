@@ -173,20 +173,20 @@ func scan(...string) error {
 		if err != nil {
 			return err
 		}
-		// if ((addr < 0x30) || (addr >= 0x40 && addr <= 0x47) || (addr >= 0x60)) && s.Mask()&bus.I2C_FUNC_SMBUS_QUICK != 0 {
-		// 	if err = bus.SMBusWriteQuick(s.Fd(), bus.SMBUS_WRITE); err != nil {
-		// 		fmt.Print("~~ ")
-		// 	} else {
-		// 		fmt.Print("[x]")
-		// 	}
-		// } else {
-		b, err := bus.SMBusReadByte(s.Fd())
-		if err != nil {
-			fmt.Print("-- ")
+		if ((addr < 0x30) || (addr >= 0x40 && addr <= 0x47) || (addr >= 0x60)) && s.Mask()&bus.I2C_FUNC_SMBUS_QUICK != 0 {
+			if err = bus.SMBusWriteQuick(s.Fd(), bus.SMBUS_WRITE); err != nil {
+				fmt.Print("~~ ")
+			} else {
+				fmt.Print("XX ")
+			}
 		} else {
-			fmt.Printf("%02x ", b)
+			b, err := bus.SMBusReadByte(s.Fd())
+			if err != nil {
+				fmt.Print("-- ")
+			} else {
+				fmt.Printf("%02X ", b)
+			}
 		}
-		// }
 		if addr%16 == 15 {
 			fmt.Println()
 		}
