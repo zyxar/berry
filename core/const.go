@@ -22,8 +22,8 @@ const (
 	FALLING
 	RISING
 
-	PI_GPIO_MASK    = 0xFFFFFFC0
+	MMAP_BLOCK_SIZE = 4096
 	DEV_GPIO_MEM    = "/dev/gpiomem"
 	DEV_MEM         = "/dev/mem"
-	MMAP_BLOCK_SIZE = 4096
+	SYS_SOC_RANGES  = "/sys/firmware/devicetree/base/soc/ranges"
 )
