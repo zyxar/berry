@@ -102,7 +102,7 @@ func factory(args ...string) func(args ...string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(b)
+			fmt.Printf("%X\n", b)
 		case "readdata":
 			if len(args) < 2 {
 				return errNoRegister
@@ -115,7 +115,7 @@ func factory(args ...string) func(args ...string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(b)
+			fmt.Printf("%X\n", b)
 		case "readword":
 			if len(args) < 2 {
 				return errNoRegister
@@ -128,7 +128,7 @@ func factory(args ...string) func(args ...string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(b)
+			fmt.Printf("%X\n", b)
 		case "readblock":
 			if len(args) < 2 {
 				return errNoRegister
@@ -141,7 +141,7 @@ func factory(args ...string) func(args ...string) error {
 			if err != nil {
 				return err
 			}
-			fmt.Println(b)
+			fmt.Printf("%X\n", b)
 		case "probe":
 			for i, _ := range fns {
 				if uint64(fns[i].code)&mask != 0 {
@@ -168,20 +168,20 @@ func scan(...string) error {
 		if err != nil {
 			return err
 		}
-		if ((addr < 0x30) || (addr >= 0x40 && addr <= 0x47) || (addr >= 0x60)) && s.Mask()&bus.I2C_FUNC_SMBUS_QUICK != 0 {
-			if err = bus.SMBusWriteQuick(s.Fd(), bus.SMBUS_WRITE); err != nil {
-				fmt.Print("~~ ")
-			} else {
-				fmt.Print("[x]")
-			}
+		// if ((addr < 0x30) || (addr >= 0x40 && addr <= 0x47) || (addr >= 0x60)) && s.Mask()&bus.I2C_FUNC_SMBUS_QUICK != 0 {
+		// 	if err = bus.SMBusWriteQuick(s.Fd(), bus.SMBUS_WRITE); err != nil {
+		// 		fmt.Print("~~ ")
+		// 	} else {
+		// 		fmt.Print("[x]")
+		// 	}
+		// } else {
+		b, err := bus.SMBusReadByte(s.Fd())
+		if err != nil {
+			fmt.Print("-- ")
 		} else {
-			b, err := bus.SMBusReadByte(s.Fd())
-			if err != nil {
-				fmt.Print("-- ")
-			} else {
-				fmt.Printf("%02x ", b)
-			}
+			fmt.Printf("%02x ", b)
 		}
+		// }
 		if addr%16 == 15 {
 			fmt.Println()
 		}
