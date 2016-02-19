@@ -58,6 +58,30 @@ func OpenSPI(channel uint8, speed uint32, mode uint8) (s *spi, err error) {
 	return
 }
 
+func (this spi) rw(p []byte) (n int, err error) {
+	n = len(p)
+	var transfer = spiIoctlTransfer{
+		TxBuf:       uint64(uintptr(unsafe.Pointer(&p))),
+		RxBuf:       uint64(uintptr(unsafe.Pointer(&p))),
+		Length:      uint32(n),
+		SpeedHz:     this.speed,
+		DelayUsecs:  0,
+		BitsPerWord: spiBPW,
+	}
+	err = sys.Ioctl(this.file.Fd(), SPI_IOC_MESSAGE(1), uintptr(unsafe.Pointer(&transfer)))
+	return
+}
+
+func (this spi) Read(p []byte) (n int, err error) {
+	n, err = this.rw(p)
+	return
+}
+
+func (this spi) Write(p []byte) (n int, err error) {
+	n, err = this.rw(p)
+	return
+}
+
 // Read of SPI mode (SPI_MODE_0..SPI_MODE_3)
 func SPI_IOC_RD_MODE() uintptr {
 	return sys.IOR(_SPI_IOC_MAGIC, 1, 1)
