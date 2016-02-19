@@ -28,8 +28,7 @@ func init() {
 	commands = map[string]func(...string) error{
 		"scan":      scan,
 		"probe":     factory("probe"),
-		"read":      factory("read"),
-		"readdata":  factory("readdata"),
+		"readbyte":  factory("readbyte"),
 		"readword":  factory("readword"),
 		"readblock": factory("readblock"),
 	}
@@ -80,6 +79,29 @@ func main() {
 	}
 }
 
+func smbread(fd uintptr, size int, args []string) (err error) {
+	if len(args) < 1 {
+		err = errNoRegister
+		return
+	}
+	var reg uint64
+	var b []byte
+	for _, arg := range args {
+		reg, err = strconv.ParseUint(arg, 10, 8)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[%02d] %v\n", reg, err)
+			continue
+		}
+		b, err = bus.SMBusRead(fd, uint8(reg), size)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[%02d] %v\n", reg, err)
+			continue
+		}
+		fmt.Printf("[%02d] %X\n", reg, b)
+	}
+	return nil
+}
+
 func factory(args ...string) func(args ...string) error {
 	var cmd string = args[0]
 	return func(args ...string) error {
@@ -98,55 +120,12 @@ func factory(args ...string) func(args ...string) error {
 		mask := s.Mask()
 		fmt.Printf("bus: %d, addr: 0x%02x, mask: 0x%08X\n", *dev, addr, mask)
 		switch cmd {
-		case "read":
-			b, err := bus.SMBusReadByte(s.Fd())
-			if err != nil {
-				return err
-			}
-			fmt.Printf("%X\n", b)
-		case "readdata":
-			if len(args) < 2 {
-				return errNoRegister
-			}
-			b := make([]uint8, len(args)-1)
-			for i, arg := range args[1:] {
-				reg, err := strconv.ParseUint(arg, 10, 8)
-				if err != nil {
-					return err
-				}
-				if b[i], err = bus.SMBusReadByteData(s.Fd(), uint8(reg)); err != nil {
-					return err
-				}
-			}
-			fmt.Printf("%X\n", b)
+		case "readbyte":
+			return smbread(s.Fd(), bus.SMBUS_BYTE_DATA, args[1:])
 		case "readword":
-			if len(args) < 2 {
-				return errNoRegister
-			}
-			b := make([]uint16, len(args)-1)
-			for i, arg := range args[1:] {
-				reg, err := strconv.ParseUint(arg, 10, 8)
-				if err != nil {
-					return err
-				}
-				if b[i], err = bus.SMBusReadWordData(s.Fd(), uint8(reg)); err != nil {
-					return err
-				}
-			}
-			fmt.Printf("%X\n", b)
+			return smbread(s.Fd(), bus.SMBUS_WORD_DATA, args[1:])
 		case "readblock":
-			if len(args) < 2 {
-				return errNoRegister
-			}
-			reg, err := strconv.ParseUint(args[1], 10, 8)
-			if err != nil {
-				return err
-			}
-			b, err := bus.SMBusReadBlockData(s.Fd(), uint8(reg))
-			if err != nil {
-				return err
-			}
-			fmt.Printf("%X\n", b)
+			return smbread(s.Fd(), bus.SMBUS_BLOCK_DATA, args[1:])
 		case "probe":
 			for i, _ := range fns {
 				if uint64(fns[i].code)&mask != 0 {
@@ -155,10 +134,10 @@ func factory(args ...string) func(args ...string) error {
 					fmt.Printf("\t[ ] %s\n", fns[i].name)
 				}
 			}
+			return nil
 		default:
-			return errUnsupported
 		}
-		return nil
+		return errUnsupported
 	}
 }
 
@@ -180,11 +159,11 @@ func scan(...string) error {
 				fmt.Print("XX ")
 			}
 		} else {
-			b, err := bus.SMBusReadByte(s.Fd())
+			b, err := bus.SMBusRead(s.Fd(), 0, bus.SMBUS_BYTE)
 			if err != nil {
 				fmt.Print("-- ")
 			} else {
-				fmt.Printf("%02X ", b)
+				fmt.Printf("%02X ", b[0])
 			}
 		}
 		if addr%16 == 15 {

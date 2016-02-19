@@ -21,6 +21,7 @@ const ( // SMBus transaction types
 	SMBUS_BLOCK_PROC_CALL /* SMBus 2.0 */
 	SMBUS_I2C_BLOCK_DATA
 )
+
 const ( // SMBus messages
 	SMBUS_BLOCK_MAX     = 32
 	SMBUS_I2C_BLOCK_MAX = 32
@@ -76,47 +77,44 @@ func SMBusWriteQuick(fd uintptr, b uint8) error {
 	return smbusAccess(fd, b, 0, SMBUS_QUICK, nil)
 }
 
-func SMBusReadByte(fd uintptr) (b uint8, err error) {
+func SMBusRead(fd uintptr, cmd uint8, size int) (b []byte, err error) {
 	var data smbusData
-	if err = smbusAccess(fd, SMBUS_READ, 0, SMBUS_BYTE, &data); err != nil {
+	if err = smbusAccess(fd, SMBUS_READ, cmd, size, &data); err != nil {
 		return
 	}
-	b = data[0]
+	switch size {
+	case SMBUS_BYTE, SMBUS_BYTE_DATA:
+		b = data[:1]
+	case SMBUS_WORD_DATA:
+		b = data[:2]
+	case SMBUS_BLOCK_DATA:
+		if l := data[0]; l > 0 {
+			b = data[1 : l+1]
+		}
+	}
 	return
 }
 
-func SMBusWriteByte(fd uintptr, b uint8) error {
-	return smbusAccess(fd, SMBUS_WRITE, b, SMBUS_BYTE, nil)
-}
-
-func SMBusReadByteData(fd uintptr, cmd uint8) (b uint8, err error) {
-	var data smbusData
-	if err = smbusAccess(fd, SMBUS_READ, cmd, SMBUS_BYTE_DATA, &data); err != nil {
-		return
+func SMBusWrite(fd uintptr, cmd uint8, b ...uint8) error {
+	length := len(b)
+	if length == 0 {
+		return smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_BYTE, nil)
 	}
-	b = data[0]
-	return
-}
-
-func SMBusWriteByteData(fd uintptr, cmd uint8, b uint8) error {
 	var data smbusData
-	data[0] = b
-	return smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_BYTE_DATA, &data)
-}
-
-func SMBusReadWordData(fd uintptr, cmd uint8) (b uint16, err error) {
-	var data smbusData
-	if err = smbusAccess(fd, SMBUS_READ, cmd, SMBUS_WORD_DATA, &data); err != nil {
-		return
+	var size int
+	switch length {
+	case 1:
+		data[0] = b[0]
+		size = SMBUS_BYTE_DATA
+	case 2:
+		copy(data[:], b)
+		size = SMBUS_WORD_DATA
+	default:
+		data[0] = uint8(length)
+		copy(data[1:], b)
+		size = SMBUS_BLOCK_DATA
 	}
-	b = binary.LittleEndian.Uint16(data[:2])
-	return
-}
-
-func SMBusWriteWordData(fd uintptr, cmd uint8, b uint16) error {
-	var data smbusData
-	binary.LittleEndian.PutUint16(data[:2], b)
-	return smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_WORD_DATA, &data)
+	return smbusAccess(fd, SMBUS_WRITE, cmd, size, &data)
 }
 
 func SMBusProcessCall(fd uintptr, cmd uint8, b uint16) (v uint16, err error) {
@@ -129,26 +127,6 @@ func SMBusProcessCall(fd uintptr, cmd uint8, b uint16) (v uint16, err error) {
 	return
 }
 
-func SMBusReadBlockData(fd uintptr, cmd uint8) (b []byte, err error) {
-	var data smbusData
-	if err = smbusAccess(fd, SMBUS_READ, cmd, SMBUS_BLOCK_DATA, &data); err != nil {
-		return
-	}
-	size := data[0]
-	b = data[1 : size+1]
-	return
-}
-
-func SMBusWriteBlockData(fd uintptr, cmd uint8, b []byte) error {
-	var data smbusData
-	if len(b) > SMBUS_BLOCK_MAX {
-		b = b[:SMBUS_BLOCK_MAX]
-	}
-	data[0] = uint8(len(b))
-	copy(data[1:], b)
-	return smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_BLOCK_DATA, &data)
-}
-
 func SMBusBlockProcessCall(fd uintptr, cmd uint8, b []byte) (v []byte, err error) {
 	var data smbusData
 	if len(b) > SMBUS_BLOCK_MAX {
@@ -159,7 +137,8 @@ func SMBusBlockProcessCall(fd uintptr, cmd uint8, b []byte) (v []byte, err error
 	if err = smbusAccess(fd, SMBUS_WRITE, cmd, SMBUS_BLOCK_PROC_CALL, &data); err != nil {
 		return
 	}
-	size := data[0]
-	v = data[1 : size+1]
+	if size := data[0]; size > 0 {
+		v = data[1 : size+1]
+	}
 	return
 }
