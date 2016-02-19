@@ -108,7 +108,7 @@ func factory(args ...string) func(args ...string) error {
 		if len(args) == 0 {
 			return errNoAddr
 		}
-		addr, err := strconv.ParseUint(args[0], 10, 16)
+		addr, err := strconv.ParseUint(args[0], 16, 16)
 		if err != nil {
 			return err
 		}
