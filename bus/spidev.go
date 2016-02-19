@@ -1,6 +1,7 @@
 package bus
 
 import (
+	"os"
 	"unsafe"
 
 	"github.com/zyxar/berry/sys"
@@ -18,6 +19,43 @@ type spiIoctlTransfer struct {
 	DelayUsecs            uint16
 	BitsPerWord, CsChange uint8
 	_                     uint32
+}
+
+type spi struct {
+	channel uint8
+	speed   uint32
+	file    *os.File
+}
+
+var spiBPW uint8 = 8
+
+func OpenSPI(channel uint8, speed uint32, mode uint8) (s *spi, err error) {
+	channel &= 1 // 0 or 1
+	mode &= 3    // 0, 1, 2 or 3
+	s = &spi{channel: channel, speed: speed}
+	defer func() {
+		if err != nil && s != nil && s.file != nil {
+			s.file.Close()
+			s.file = nil
+		}
+	}()
+	if channel == 0 {
+		if s.file, err = os.OpenFile(_SPI_DEV0, os.O_RDWR, 0); err != nil {
+			return
+		}
+	} else {
+		if s.file, err = os.OpenFile(_SPI_DEV1, os.O_RDWR, 0); err != nil {
+			return
+		}
+	}
+	if err = sys.Ioctl(s.file.Fd(), SPI_IOC_WR_MODE(), uintptr(unsafe.Pointer(&mode))); err != nil {
+		return
+	}
+	if err = sys.Ioctl(s.file.Fd(), SPI_IOC_WR_BITS_PER_WORD(), uintptr(unsafe.Pointer(&spiBPW))); err != nil {
+		return
+	}
+	err = sys.Ioctl(s.file.Fd(), SPI_IOC_WR_MAX_SPEED_HZ(), uintptr(unsafe.Pointer(&speed)))
+	return
 }
 
 // Read of SPI mode (SPI_MODE_0..SPI_MODE_3)
