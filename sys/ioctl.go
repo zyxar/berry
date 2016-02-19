@@ -1,12 +1,12 @@
-package core
+package sys
 
 import (
 	"os"
 	"syscall"
 )
 
-func Ioctl(fd int, request, argp uintptr) error {
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, uintptr(fd), request, argp)
+func Ioctl(fd, request, argp uintptr) error {
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, request, argp)
 	if errno == 0 {
 		return nil
 	}

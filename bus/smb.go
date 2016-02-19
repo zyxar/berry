@@ -3,6 +3,8 @@ package bus
 import (
 	"encoding/binary"
 	"unsafe"
+
+	"github.com/zyxar/berry/sys"
 )
 
 const (
@@ -70,7 +72,7 @@ func smbusAccess(fd uintptr, rw uint8, cmd uint8, size int, data *smbusData) err
 		size: size,
 		data: data,
 	}
-	return ioctl(fd, I2C_SMBUS, uintptr(unsafe.Pointer(&d)))
+	return sys.Ioctl(fd, I2C_SMBUS, uintptr(unsafe.Pointer(&d)))
 }
 
 func SMBusWriteQuick(fd uintptr, b uint8) error {

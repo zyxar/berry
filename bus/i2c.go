@@ -69,8 +69,9 @@ import (
 	"fmt"
 	"os"
 	"runtime"
-	"syscall"
 	"unsafe"
+
+	"github.com/zyxar/berry/sys"
 )
 
 const (
@@ -110,22 +111,22 @@ func NewI2C(addr uint, dev uint) (i *I2C, err error) {
 		}
 	}()
 	if addr <= 0x7F {
-		if err = ioctl(f.Fd(), I2C_TENBIT, 0); err != nil {
+		if err = sys.Ioctl(f.Fd(), I2C_TENBIT, 0); err != nil {
 			return
 		}
 	} else if addr <= 0x3FF {
-		if err = ioctl(f.Fd(), I2C_TENBIT, 1); err != nil {
+		if err = sys.Ioctl(f.Fd(), I2C_TENBIT, 1); err != nil {
 			return
 		}
 	} else {
 		err = fmt.Errorf("address overflow: %d", addr)
 		return
 	}
-	if err = ioctl(f.Fd(), I2C_SLAVE, uintptr(addr)); err != nil {
+	if err = sys.Ioctl(f.Fd(), I2C_SLAVE, uintptr(addr)); err != nil {
 		return
 	}
 	var mask uint64
-	if err = ioctl(f.Fd(), I2C_FUNCS, uintptr(unsafe.Pointer(&mask))); err != nil {
+	if err = sys.Ioctl(f.Fd(), I2C_FUNCS, uintptr(unsafe.Pointer(&mask))); err != nil {
 		return
 	}
 	i = &I2C{f, addr, dev, mask}
@@ -162,14 +163,6 @@ func (this *I2C) Read(b []byte) error {
 	return err
 }
 
-func ioctl(fd, cmd, arg uintptr) (err error) {
-	_, _, e1 := syscall.Syscall6(syscall.SYS_IOCTL, fd, cmd, arg, 0, 0, 0)
-	if e1 != 0 {
-		err = e1
-	}
-	return
-}
-
 const I2CCLOCK_CHANGE = 0x0740
 
 func SetBusFreq(hz uint) error {
@@ -181,6 +174,6 @@ func SetBusFreq(hz uint) error {
 		return err
 	}
 	defer f.Close()
-	err = ioctl(f.Fd(), I2CCLOCK_CHANGE, uintptr(unsafe.Pointer(&hz)))
+	err = sys.Ioctl(f.Fd(), I2CCLOCK_CHANGE, uintptr(unsafe.Pointer(&hz)))
 	return err
 }
