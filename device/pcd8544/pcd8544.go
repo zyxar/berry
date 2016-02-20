@@ -81,7 +81,6 @@ func (this *LCD) Reset() {
 	this.Command(FUNCTIONSET)
 	this.Command(DISPLAYCONTROL | DISPLAYNORMAL)
 	DelayMicroseconds(10)
-	this.showLogo()
 }
 
 func (this *LCD) DrawBitmap(x, y byte, bitmap []byte, w, h, color byte) {
@@ -313,6 +312,16 @@ func (this *LCD) Display() {
 	}
 }
 
+func (this *LCD) Off() {
+	for p := 0; p < 6; p++ {
+		this.Command(byte(SETYADDR | p))
+		this.Command(SETXADDR)
+		for col := 0; col < LCDWIDTH; col++ {
+			this.Data(0)
+		}
+	}
+}
+
 func (this *LCD) Clear() {
 	for i := 0; i < LCDWIDTH*LCDHEIGHT/8; i++ {
 		this.buffer[i] = 0
@@ -321,7 +330,7 @@ func (this *LCD) Clear() {
 	this.y = 0
 }
 
-func (this *LCD) showLogo() {
+func (this *LCD) ShowLogo() {
 	for p := 0; p < 6; p++ {
 		this.Command(byte(SETYADDR | p))
 		this.Command(SETXADDR)

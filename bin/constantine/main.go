@@ -26,7 +26,7 @@ func init() {
 		for s := range ch {
 			fmt.Printf("%v caught, exit\n", s)
 			if lcd != nil {
-				lcd.Reset()
+				lcd.Off()
 			}
 			close(quit)
 		}
