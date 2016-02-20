@@ -61,13 +61,13 @@ func New(addr, dev uint) (*Clock, error) {
 	return r, nil
 }
 
-func (this *Clock) Get() (*time.Time, error) {
+func (this *Clock) Get() (t time.Time, err error) {
 	defer this.m.Unlock()
 	this.m.Lock()
 	this.h.Write(0)
 	b := make([]byte, 7)
-	if err := this.h.Read(b); err != nil {
-		return nil, err
+	if err = this.h.Read(b); err != nil {
+		return
 	}
 	// A few of these need masks because certain bits are control bits
 	second := bcdToDec(b[0] & 0x7f)
@@ -77,25 +77,30 @@ func (this *Clock) Get() (*time.Time, error) {
 	month := bcdToDec(b[5])
 	year := bcdToDec(b[6])
 	_, zone := time.Now().Zone()
-	t, err := time.Parse(time.RFC3339, fmt.Sprintf("20%.2d-%.2d-%.2dT%.2d:%.2d:%.2d%+.2d:00", year, month, dayOfMonth, hour, minute, second, zone/3600))
-	if err != nil {
-		return nil, err
-	}
-	return &t, nil
+	t, err = time.Parse(
+		time.RFC3339,
+		fmt.Sprintf("20%.2d-%.2d-%.2dT%.2d:%.2d:%.2d%+.2d:00",
+			year,
+			month,
+			dayOfMonth,
+			hour,
+			minute,
+			second,
+			zone/3600))
+	return
 }
 
-func (this *Clock) Set(now *time.Time) error {
-	second, minute, hour, dayOfWeek, dayOfMonth, month, year := byte(now.Second()), byte(now.Minute()), byte(now.Hour()), byte(now.Weekday()), byte(now.Day()), byte(now.Month()), byte(now.Year()%2000)
+func (this *Clock) Set(now time.Time) error {
 	defer this.m.Unlock()
 	this.m.Lock()
 	return this.h.Write(0,
-		decToBcd(second),
-		decToBcd(minute),
-		decToBcd(hour),
-		decToBcd(dayOfWeek),
-		decToBcd(dayOfMonth),
-		decToBcd(month),
-		decToBcd(year))
+		decToBcd(byte(now.Second())),
+		decToBcd(byte(now.Minute())),
+		decToBcd(byte(now.Hour())),
+		decToBcd(byte(now.Weekday())),
+		decToBcd(byte(now.Day())),
+		decToBcd(byte(now.Month())),
+		decToBcd(byte(now.Year()%2000)))
 }
 
 func decToBcd(val byte) byte {
