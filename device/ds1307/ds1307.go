@@ -1,3 +1,29 @@
+/*
+http://datasheets.maximintegrated.com/en/ds/DS1307.pdf
+
+DS1307 real-time clock is a lowpower, full binary-coded decimal clock/calendar plus 56 bytes of NV SRAM. Address and data are transferred serially through an I2
+C, bidirectional bus.
+The clock/calendar provides seconds, minutes, hours, day, date, month, and year information. The end of the month date is automatically adjusted for months with fewer than 31 days, including corrections for leap
+year. The clock operates in either the 24-hour or 12-hour format with AM/PM indicator.
+The DS1307 has a built-in power-sense circuit that detects power failures and automatically switches to the backup supply.
+Timekeeping operation continues while the part operates from the backup supply.
+
+        Timekeeper Registers
+ADDRESS|BIT 7|BIT 6|BIT 5|BIT 4|BIT 3|BIT 2|BIT 1|BIT 0|FUNCTION |RANGE
+00h    | CH  |   10 Seconds    | Seconds               | Seconds |00–59
+01h    | 0   |   10 Minutes    | Minutes               | Minutes |00–59
+02h    | 0   | 12  |10H  | 10H | Hours                 | Hours   |1–12
+02h    | 0   | 24  |PM/AM| 10H | Hours                 | Hours   |00-23
+03h    | 0   | 0   | 0   | 0   | 0   | DAY             | Day     |01–07
+04h    | 0   | 0   | 10 Date   | Date                  | Date    |01–31
+05h    | 0   | 0   | 0   | 10M | Month                 | Month   |01–12
+06h    | 10 Year               | Year                  | Year    |00–99
+07h    | OUT | 0   | 0   | SQWE| 0   |   0 | RS1 | RS0 | Control |—
+08h–3Fh|                                               |RAM56 x 8|00h–FFh
+
+0 = Always reads back as 0.
+
+*/
 package ds1307
 
 import (
