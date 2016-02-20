@@ -7,10 +7,13 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/zyxar/berry/core"
 	"github.com/zyxar/berry/device/pcd8544"
+	"github.com/zyxar/berry/sys"
 )
 
 var (
@@ -46,6 +49,15 @@ func main() {
 	flag.Parse()
 	lcd = pcd8544.OpenLCD(19, 26, 13, 5, 6, 60)
 	core.Delay(500)
+	ch := make(chan os.Signal, 1)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		for s := range ch {
+			fmt.Printf("%v caught, exit\n", s)
+			lcd.Reset()
+			os.Exit(0)
+		}
+	}()
 	for {
 		loop()
 	}
@@ -53,15 +65,16 @@ func main() {
 
 func loop() {
 	now := time.Now()
-	Read()
-	lcd.Clear()
-	lcd.DrawString(0, 0, hostname)
-	lcd.DrawLine(0, 9, 83, 9, pcd8544.BLACK)
-	lcd.DrawString(0, 12, "UP "+singelton.Uptime.String())
-	lcd.DrawString(0, 20, fmt.Sprintf("LD %2.1f %2.1f %2.1f", singelton.Loads[0], singelton.Loads[1], singelton.Loads[2]))
-	lcd.DrawString(0, 28, fmt.Sprintf("%v %.2d:%.2d:%.2d", now.Weekday().String()[:3], now.Hour(), now.Minute(), now.Second()))
-	lcd.DrawString(0, 36, addr)
-	lcd.DrawLine(0, 45, 83, 45, pcd8544.BLACK)
-	lcd.Display()
+	if sysinfo, err := sys.Info(); err == nil {
+		lcd.Clear()
+		lcd.DrawString(0, 0, hostname)
+		lcd.DrawLine(0, 9, 83, 9, pcd8544.BLACK)
+		lcd.DrawString(0, 12, "UP "+sysinfo.Uptime.String())
+		lcd.DrawString(0, 20, fmt.Sprintf("LD %2.1f %2.1f %2.1f", sysinfo.Loads[0], sysinfo.Loads[1], sysinfo.Loads[2]))
+		lcd.DrawString(0, 28, fmt.Sprintf("%v %.2d:%.2d:%.2d", now.Weekday().String()[:3], now.Hour(), now.Minute(), now.Second()))
+		lcd.DrawString(0, 36, addr)
+		lcd.DrawLine(0, 45, 83, 45, pcd8544.BLACK)
+		lcd.Display()
+	}
 	core.Delay(step)
 }

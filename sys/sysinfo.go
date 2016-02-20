@@ -1,6 +1,6 @@
 //+build linux
 
-package main
+package sys
 
 // ref: https://github.com/capnm/sysinfo/blob/master/sysinfo.go
 
@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type Sysinfo struct {
+type sysinfo struct {
 	Uptime       time.Duration // time since boot
 	Loads        [3]float64    // 1, 5, and 15 minute load averages, see e.g. UPTIME(1)
 	Procs        uint64        // number of current processes
@@ -28,9 +28,9 @@ type Sysinfo struct {
 
 const scale = 65536.0 // magic
 
-var singelton *Sysinfo = &Sysinfo{}
+var singelton = &sysinfo{}
 
-func Read() (*Sysinfo, error) {
+func Info() (*sysinfo, error) {
 	rawsysinfo := &syscall.Sysinfo_t{}
 	if err := syscall.Sysinfo(rawsysinfo); err != nil {
 		return nil, err
@@ -54,17 +54,17 @@ func Read() (*Sysinfo, error) {
 	return singelton, nil
 }
 
-func (si Sysinfo) String() string {
-	si.Lock()
+func (this sysinfo) String() string {
+	this.Lock()
 	r := fmt.Sprintf("uptime\t\t%v\nload\t\t%2.2f %2.2f %2.2f\nprocs\t\t%d\n"+
 		"ram  total\t%d kB\nram  free\t%d kB\nram  buffer\t%d kB\n"+
 		"swap total\t%d kB\nswap free\t%d kB",
 		//"high ram total\t%d kB\nhigh ram free\t%d kB\n"
-		si.Uptime, si.Loads[0], si.Loads[1], si.Loads[2], si.Procs,
-		si.TotalRam, si.FreeRam, si.BufferRam,
-		si.TotalSwap, si.FreeSwap,
-		// archaic si.TotalHighRam, si.FreeHighRam
+		this.Uptime, this.Loads[0], this.Loads[1], this.Loads[2], this.Procs,
+		this.TotalRam, this.FreeRam, this.BufferRam,
+		this.TotalSwap, this.FreeSwap,
+		// archaic this.TotalHighRam, this.FreeHighRam
 	)
-	si.Unlock()
+	this.Unlock()
 	return r
 }
