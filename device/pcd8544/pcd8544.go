@@ -293,9 +293,7 @@ func (this *LCD) Data(c byte) {
 }
 
 func (this *LCD) SetContrast(val byte) {
-	if val > 0x7F {
-		val = 0x7F
-	}
+	val &= 0x7F
 	this.contrast = val
 	this.Command(FUNCTIONSET | EXTENDEDINSTRUCTION)
 	this.Command(SETVOP | val)
@@ -320,6 +318,11 @@ func (this *LCD) Off() {
 			this.Data(0)
 		}
 	}
+	this.din.DigitalWrite(LOW)
+	this.clk.DigitalWrite(LOW)
+	this.dc.DigitalWrite(LOW)
+	this.rst.DigitalWrite(LOW)
+	this.cs.DigitalWrite(LOW)
 }
 
 func (this *LCD) Clear() {
