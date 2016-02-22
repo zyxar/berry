@@ -23,20 +23,22 @@ type sysinfo struct {
 	FreeSwap     uint64        // swap space still available [kB]
 	TotalHighRam uint64        // total high memory size [kB]
 	FreeHighRam  uint64        // available high memory size [kB]
-	sync.Mutex                 // ensures atomic writes; protects the following fields
 }
 
 const scale = 65536.0 // magic
 
-var singelton = &sysinfo{}
+var (
+	singelton = &sysinfo{}
+	lock      sync.Mutex
+)
 
 func Info() (*sysinfo, error) {
 	rawsysinfo := &syscall.Sysinfo_t{}
 	if err := syscall.Sysinfo(rawsysinfo); err != nil {
 		return nil, err
 	}
-	defer singelton.Unlock()
-	singelton.Lock()
+	defer lock.Unlock()
+	lock.Lock()
 	unit := uint64(rawsysinfo.Unit) * 1024 // kB
 	singelton.Uptime = time.Duration(rawsysinfo.Uptime) * time.Second
 	singelton.Loads[0] = float64(rawsysinfo.Loads[0]) / scale
@@ -55,7 +57,7 @@ func Info() (*sysinfo, error) {
 }
 
 func (this sysinfo) String() string {
-	this.Lock()
+	lock.Lock()
 	r := fmt.Sprintf("uptime\t\t%v\nload\t\t%2.2f %2.2f %2.2f\nprocs\t\t%d\n"+
 		"ram  total\t%d kB\nram  free\t%d kB\nram  buffer\t%d kB\n"+
 		"swap total\t%d kB\nswap free\t%d kB",
@@ -65,6 +67,6 @@ func (this sysinfo) String() string {
 		this.TotalSwap, this.FreeSwap,
 		// archaic this.TotalHighRam, this.FreeHighRam
 	)
-	this.Unlock()
+	lock.Unlock()
 	return r
 }

@@ -7,7 +7,7 @@ import (
 )
 
 // reference:
-// https://github.com/binerry/RaspberryPi/blob/master/libraries/c/PCD8544/PCD8544.c
+// https://github.com/adafruit/Adafruit-PCD8544-Nokia-5110-LCD-library
 
 const (
 	BLACK               = 1

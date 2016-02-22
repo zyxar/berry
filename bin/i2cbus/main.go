@@ -34,24 +34,24 @@ func init() {
 	}
 
 	fns = []fn{
-		fn{bus.I2C_FUNC_I2C, "I2C"},
-		fn{bus.I2C_FUNC_10BIT_ADDR, "10BIT_ADDR"},
-		fn{bus.I2C_FUNC_PROTOCOL_MANGLING, "PROTOCOL_MANGLING"},
-		fn{bus.I2C_FUNC_SMBUS_PEC, "SMBUS_PEC"},
-		fn{bus.I2C_FUNC_NOSTART, "NOSTART"},
-		fn{bus.I2C_FUNC_SMBUS_BLOCK_PROC_CALL, "SMBUS_BLOCK_PROC_CALL"},
-		fn{bus.I2C_FUNC_SMBUS_QUICK, "SMBUS_QUICK"},
-		fn{bus.I2C_FUNC_SMBUS_READ_BYTE, "SMBUS_READ_BYTE"},
-		fn{bus.I2C_FUNC_SMBUS_WRITE_BYTE, "SMBUS_WRITE_BYTE"},
-		fn{bus.I2C_FUNC_SMBUS_READ_BYTE_DATA, "SMBUS_READ_BYTE_DATA"},
-		fn{bus.I2C_FUNC_SMBUS_WRITE_BYTE_DATA, "SMBUS_WRITE_BYTE_DATA"},
-		fn{bus.I2C_FUNC_SMBUS_READ_WORD_DATA, "SMBUS_READ_WORD_DATA"},
-		fn{bus.I2C_FUNC_SMBUS_WRITE_WORD_DATA, "SMBUS_WRITE_WORD_DATA"},
-		fn{bus.I2C_FUNC_SMBUS_PROC_CALL, "SMBUS_PROC_CALL"},
-		fn{bus.I2C_FUNC_SMBUS_READ_BLOCK_DATA, "SMBUS_READ_BLOCK_DATA"},
-		fn{bus.I2C_FUNC_SMBUS_WRITE_BLOCK_DATA, "SMBUS_WRITE_BLOCK_DATA"},
-		fn{bus.I2C_FUNC_SMBUS_READ_I2C_BLOCK, "SMBUS_READ_I2C_BLOCK"},
-		fn{bus.I2C_FUNC_SMBUS_WRITE_I2C_BLOCK, "SMBUS_WRITE_I2C_BLOCK"},
+		{bus.I2C_FUNC_I2C, "I2C"},
+		{bus.I2C_FUNC_10BIT_ADDR, "10BIT_ADDR"},
+		{bus.I2C_FUNC_PROTOCOL_MANGLING, "PROTOCOL_MANGLING"},
+		{bus.I2C_FUNC_SMBUS_PEC, "SMBUS_PEC"},
+		{bus.I2C_FUNC_NOSTART, "NOSTART"},
+		{bus.I2C_FUNC_SMBUS_BLOCK_PROC_CALL, "SMBUS_BLOCK_PROC_CALL"},
+		{bus.I2C_FUNC_SMBUS_QUICK, "SMBUS_QUICK"},
+		{bus.I2C_FUNC_SMBUS_READ_BYTE, "SMBUS_READ_BYTE"},
+		{bus.I2C_FUNC_SMBUS_WRITE_BYTE, "SMBUS_WRITE_BYTE"},
+		{bus.I2C_FUNC_SMBUS_READ_BYTE_DATA, "SMBUS_READ_BYTE_DATA"},
+		{bus.I2C_FUNC_SMBUS_WRITE_BYTE_DATA, "SMBUS_WRITE_BYTE_DATA"},
+		{bus.I2C_FUNC_SMBUS_READ_WORD_DATA, "SMBUS_READ_WORD_DATA"},
+		{bus.I2C_FUNC_SMBUS_WRITE_WORD_DATA, "SMBUS_WRITE_WORD_DATA"},
+		{bus.I2C_FUNC_SMBUS_PROC_CALL, "SMBUS_PROC_CALL"},
+		{bus.I2C_FUNC_SMBUS_READ_BLOCK_DATA, "SMBUS_READ_BLOCK_DATA"},
+		{bus.I2C_FUNC_SMBUS_WRITE_BLOCK_DATA, "SMBUS_WRITE_BLOCK_DATA"},
+		{bus.I2C_FUNC_SMBUS_READ_I2C_BLOCK, "SMBUS_READ_I2C_BLOCK"},
+		{bus.I2C_FUNC_SMBUS_WRITE_I2C_BLOCK, "SMBUS_WRITE_I2C_BLOCK"},
 	}
 }
 
@@ -61,7 +61,7 @@ func main() {
 		fmt.Println("usage: i2cbus [options] {COMMAND}")
 		flag.PrintDefaults()
 		fmt.Println("\navailable commands:")
-		for cmd, _ := range commands {
+		for cmd := range commands {
 			fmt.Printf("\t%q\n", cmd)
 		}
 		fmt.Println()
@@ -127,7 +127,7 @@ func factory(args ...string) func(args ...string) error {
 		case "readblock":
 			return smbread(s.Fd(), bus.SMBUS_BLOCK_DATA, args[1:])
 		case "probe":
-			for i, _ := range fns {
+			for i := range fns {
 				if uint64(fns[i].code)&mask != 0 {
 					fmt.Printf("\t[x] %s\n", fns[i].name)
 				} else {

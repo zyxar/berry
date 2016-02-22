@@ -151,13 +151,13 @@ func (this *I2C) Mask() uint64 {
 	return this.mask
 }
 
-// Write sends buf to the remote i2c device. The interpretation of
-// the message is implementation dependant.
+// Write sends buf to the i2c device.
 func (this *I2C) Write(buf ...byte) error {
 	_, err := this.rc.Write(buf)
 	return err
 }
 
+// Read receives bytes from the i2c device.
 func (this *I2C) Read(b []byte) error {
 	_, err := this.rc.Read(b)
 	return err
