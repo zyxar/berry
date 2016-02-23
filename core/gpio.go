@@ -39,11 +39,11 @@ func setup() (err error) {
 	defer file.Close()
 
 	var piMemBase int64 = 0x3F000000
-	info, err := sys.CPUInfo()
+	cpuinfo, err := sys.CPUInfo()
 	if err != nil {
 		return
 	}
-	switch info.Hardware {
+	switch cpuinfo.Hardware {
 	case "BCM2708":
 		piMemBase = 0x20000000
 	case "BCM2709":

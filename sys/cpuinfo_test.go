@@ -8,7 +8,11 @@ import (
 
 func TestDecode(t *testing.T) {
 	r := strings.NewReader(cpuInfoText)
-	if info, err := decodeCpuInfo(r); err != nil {
+	var (
+		err  error
+		info = &cpuinfo{}
+	)
+	if err = decodeCpuInfo(r, info); err != nil {
 		t.Error(err)
 	} else {
 		if len(info.Cores) != 4 {
