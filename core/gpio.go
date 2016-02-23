@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"syscall"
 	"unsafe"
+
+	"github.com/zyxar/berry/sys"
 )
 
 var (
@@ -17,6 +19,7 @@ var (
 	ErrUnknownMode       = errors.New("unknown pin-mode")
 	ErrUnimplementedMode = errors.New("unimplemented pin-mode")
 	ErrInvalidValue      = errors.New("invalid value")
+	ErrInvalidPlatform   = errors.New("invalid platform")
 )
 
 func init() {
@@ -30,21 +33,33 @@ func setup() (err error) {
 	if file, err = os.OpenFile(DEV_GPIO_MEM, os.O_RDWR|os.O_SYNC|os.O_EXCL, 0); os.IsNotExist(err) {
 		file, err = os.OpenFile(DEV_MEM, os.O_RDWR|os.O_SYNC|os.O_EXCL, 0)
 	}
-
 	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	var piMemBase int64 = 0x3F000000
+	info, err := sys.CPUInfo()
+	if err != nil {
+		return
+	}
+	switch info.Hardware {
+	case "BCM2708":
+		piMemBase = 0x20000000
+	case "BCM2709":
+		piMemBase = 0x3F000000
+	default:
+		err = ErrInvalidPlatform
 		return
 	}
 
 	var (
-		piMemBase    int64 = 0x3F000000
 		padsMemBase  int64 = piMemBase + 0x00100000
 		clockMemBase int64 = piMemBase + 0x00101000
 		gpioMemBase  int64 = piMemBase + 0x00200000
 		timerMemBase int64 = piMemBase + 0x0000B000
 		pwmMemBase   int64 = piMemBase + 0x0020C000
 	)
-
-	defer file.Close()
 
 	var mmap = func(base int64) (p []uint32, err error) {
 		var mem []byte
@@ -66,19 +81,15 @@ func setup() (err error) {
 	if gpio, err = mmap(gpioMemBase); err != nil {
 		return
 	}
-
 	if pwm, err = mmap(pwmMemBase); err != nil {
 		return
 	}
-
 	if clk, err = mmap(clockMemBase); err != nil {
 		return
 	}
-
 	if pads, err = mmap(padsMemBase); err != nil {
 		return
 	}
-
 	timer, err = mmap(timerMemBase)
 	return
 }
