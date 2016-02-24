@@ -31,7 +31,12 @@ type spi struct {
 
 var spiBPW uint8 = 8
 
-func OpenSPI(channel uint8, speed uint32, mode uint8) (device io.ReadWriteCloser, err error) {
+type SPIBus interface {
+	io.ReadWriteCloser
+	WriteAndRead(p []byte) (n int, err error)
+}
+
+func OpenSPI(channel uint8, speed uint32, mode uint8) (device SPIBus, err error) {
 	channel &= 1 // 0 or 1
 	mode &= 3    // 0, 1, 2 or 3
 	s := &spi{channel: channel, speed: speed}
@@ -65,11 +70,11 @@ func OpenSPI(channel uint8, speed uint32, mode uint8) (device io.ReadWriteCloser
 	return
 }
 
-func (this *spi) rw(p []byte) (n int, err error) {
+func (this *spi) WriteAndRead(p []byte) (n int, err error) {
 	n = len(p)
 	var transfer = spiIoctlTransfer{
-		TxBuf:       uint64(uintptr(unsafe.Pointer(&p))),
-		RxBuf:       uint64(uintptr(unsafe.Pointer(&p))),
+		TxBuf:       uint64(uintptr(unsafe.Pointer(&p[0]))),
+		RxBuf:       uint64(uintptr(unsafe.Pointer(&p[0]))),
 		Length:      uint32(n),
 		SpeedHz:     this.speed,
 		DelayUsecs:  0,
@@ -80,12 +85,12 @@ func (this *spi) rw(p []byte) (n int, err error) {
 }
 
 func (this *spi) Read(p []byte) (n int, err error) {
-	n, err = this.rw(p)
+	n, err = this.WriteAndRead(p)
 	return
 }
 
 func (this *spi) Write(p []byte) (n int, err error) {
-	n, err = this.rw(p)
+	n, err = this.WriteAndRead(p)
 	return
 }
 
